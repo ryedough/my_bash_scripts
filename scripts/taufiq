@@ -1,0 +1,49 @@
+#!/bin/bash
+
+getArgs() {	
+	category=""
+	command=""
+	flag=""
+	for arg in "$@"; do
+		if [[ "$arg" == "-"* ]]; then
+			flag=$(echo "$arg"|tr -d -) 
+		elif [[ -z "${category}" ]] then
+			category="$arg"
+		elif [[ -z "${command}" ]] then
+			command="$arg"
+		fi
+	done
+
+	script="$MY_SCRIPTS/$category/${command}"
+	if [[ "$flag" == "a" && -n "$category" && -n "$command" ]]; then
+		create "$category" "$command"	
+	elif [[ "$flag" == "r" ]]; then
+		if [[ -n "$command" ]]; then
+			rm "$script"
+		elif [[ -n "$category" ]]; then
+			rmdir "$MY_SCRIPTS/$category/"
+		fi
+	else
+		execute "$script"
+	fi
+}
+
+create(){
+	[[ -d "$MY_SCRIPTS/$1" ]] || mkdir "$MY_SCRIPTS/$1"
+	nvim "$MY_SCRIPTS/$1/$2"
+}
+
+execute(){
+	if [[ -n "$command" && -n "$category" ]]; then
+	if [ -x "$script" ]; then
+	  "$1"
+	else
+	  echo "Command not found: $category/$command"
+	fi
+	else
+	  echo "Must be 2 command"
+	fi
+}
+
+getArgs "$@"
+
