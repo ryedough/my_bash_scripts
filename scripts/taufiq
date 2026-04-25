@@ -13,6 +13,19 @@ getArgs() {
 			command="$arg"
 		fi
 	done
+    if [[ -z "$flag" ]]; then
+        # allow fast shortcut e.g. taufiq hyprland start > taufiq h s (assuming no other h category and s command inside the hyprland category)
+        if [[ ! -d "$MY_SCRIPTS/$category" && 
+            $(cd "$MY_SCRIPTS" && ls -d1A */ | grep "^$category" | wc -l) -eq 1 ]]
+        then
+            category=$(cd "$MY_SCRIPTS" && ls -d1A */ | grep "^$category" | tr -d /)
+        fi    
+        if [[ ! -e "$MY_SCRIPTS/$category/$command" && 
+            $(cd "$MY_SCRIPTS/$category" && ls -1A * | grep "^$command" | wc -l) -eq 1 ]]
+        then
+            command=$(cd "$MY_SCRIPTS/$category" && ls -1A * | grep "^$command")
+        fi
+    fi
 
 	script="$MY_SCRIPTS/$category/${command}"
 	if [[ "$flag" == "a" && -n "$category" && -n "$command" ]]; then
@@ -30,7 +43,8 @@ getArgs() {
 
 create(){
 	[[ -d "$MY_SCRIPTS/$1" ]] || mkdir "$MY_SCRIPTS/$1"
-	nvim "$MY_SCRIPTS/$1/$2"
+	[[ -e "$MY_SCRIPTS/$1/$2" ]] || touch "$MY_SCRIPTS/$1/$2" && chmod +x "$MY_SCRIPTS/$1/$2"
+    nvim "$MY_SCRIPTS/$1/$2"
 }
 
 execute(){
